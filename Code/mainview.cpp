@@ -123,6 +123,12 @@ void MainView::updateUniforms() {
 
 }
 
+void MainView::createMatrices() {
+    model.setToIdentity();
+    view.setToIdentity();
+    projection.setToIdentity();
+}
+
 /**
  * @brief MainView::initializeGL
  *
@@ -160,6 +166,8 @@ void MainView::initializeGL() {
 
     createShaderPrograms();
 
+    createMatrices();
+
     createBuffers();
 
     loadModel(":/models/cube.obj", cubeBO);
@@ -191,7 +199,7 @@ void MainView::resizeGL(int newWidth, int newHeight) {
  */
 void MainView::paintGL() {
 
-    createMatrices();
+    updateMatrices();
 
     // Clear the screen before rendering
     glClearColor(0.0f,0.0f,0.0f, 0.0f);
@@ -206,38 +214,17 @@ void MainView::paintGL() {
     mainShaderProg->release();
 }
 
-void MainView::createMatrices() {
-    float tanFov = tan(0.5f * pi / 3);
-    int zNear = 4;
-    int zFar = 100;
+void MainView::updateMatrices() {
+    view.setToIdentity();
+    projection.setToIdentity();
 
-    model = QMatrix4x4 {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1};
-    view = QMatrix4x4 {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1};
-    projection = QMatrix4x4 {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1};
-    QVector3D eye {cos(rotY*pi/180) * cos(rotZ*pi/180),
-                   sin(rotX*pi/180) * sin(rotZ*pi/180),
-                   sin(rotY*pi/180) * cos(rotX*pi/180)};
-    view.lookAt(4 * eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
+    view.lookAt(QVector3D {0, 0, -8}, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
     projection.perspective(60.0f, 1.0f, 0.1f, 100.0f);
+
+    qDebug() << model;
 
     mainShaderProg->bind();
     glUniformMatrix4fv(shaderModel, 1, GL_FALSE, model.data());
     glUniformMatrix4fv(shaderView, 1, GL_FALSE, view.data());
     glUniformMatrix4fv(shaderProjection, 1, GL_FALSE, projection.data());
 }
-
-// Add your function implementations below
-
-// TODO: add your code

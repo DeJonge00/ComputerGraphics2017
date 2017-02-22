@@ -33,8 +33,6 @@ public:
     QVector<QVector3D> colors;
     int vertexNumber;
 
-    int rotX = 0, rotY = 0, rotZ = 0;
-
     QVector3D convertHSLtoRGB(float H, float S, float L);
 
 protected:
@@ -61,6 +59,7 @@ private:
     void updateBuffers();
     void updateUniforms();
     void createMatrices();
+    void updateMatrices();
 
     // Raytracer scene functions
     void renderSphere(QVector3D pos, QVector3D color, QVector4D material, QVector3D lightpos);
@@ -81,6 +80,7 @@ private:
 
     GLuint VAO, VBO, CBO;
     QMatrix4x4 model, view, projection;
+    QMatrix3x3 rotation;
 
     GLint shaderModel, shaderView, shaderProjection;
 

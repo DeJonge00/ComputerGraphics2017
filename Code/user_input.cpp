@@ -4,10 +4,29 @@
 
 void MainView::updateRotation(int x, int y, int z)
 {
-    qDebug() << "updateRotation(" << x << "," << y << "," << z << ");";
-    rotX = x;
-    rotY = y;
-    rotZ = z;
+    double xrad = x*pi/180;
+    double yrad = y*pi/180;
+    double zrad = z*pi/180;
+    QMatrix4x4 rotX {
+        1, 0, 0, 0,
+        0, cos(xrad), -sin(xrad), 0,
+        0, sin(xrad), cos(xrad), 0,
+        0, 0, 0, 1
+    };
+    QMatrix4x4 rotY {
+        cos(yrad), 0, sin(yrad), 0,
+        0, 1, 0, 0,
+        -sin(yrad), 0, cos(yrad), 0,
+        0, 0, 0, 1
+    };
+    QMatrix4x4 rotZ {
+        cos(zrad), -sin(zrad), 0, 0,
+        sin(zrad), cos(zrad), 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+    model = rotZ * rotY * rotX;
+
     update();
 }
 
