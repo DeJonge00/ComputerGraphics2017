@@ -1,12 +1,7 @@
 #version 330 core
 
-// Define constants
-#define M_PI 3.141593
-
-// Specify the inputs to the fragment shader
-// These must have the same type and name!
-
-// in vec3 vertPos; Using the output from the vertex shader example
+// Specify the input locations of attributes
+in vec3 vertColor;
 
 // Specify the Uniforms of the vertex shaders
 // uniform vec3 lightPosition; for example
@@ -17,6 +12,5 @@ out vec4 fColor;
 
 void main()
 {
-    // Plain White
-    fColor = vec4(1.0, 1.0, 1.0, 1.0);
+    fColor = vec4(vertColor, 1.0);
 }

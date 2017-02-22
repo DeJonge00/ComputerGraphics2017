@@ -14,12 +14,11 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Specify the outputs of the vertex shader
-// These will be the input for the fragment shader
-
-// out vec3 vertPos; for example
+out vec3 vertColor;
 
 void main()
 {
     // gl_Position is the output (a vec4) of the vertex shader
     gl_Position = projection * view * model * vec4(vertCoordinates_in, 1.0);
+    vertColor = vertColor_in;
 }

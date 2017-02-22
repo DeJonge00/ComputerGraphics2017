@@ -93,12 +93,15 @@ void MainView::loadModel(QString filename, GLuint bufferObject) {
     vertexNumber = vertices.size();
 
     srand (static_cast <unsigned> (time(0)));
-    for(int i = 0; i < vertexNumber; i++) {
-        colors.append(QVector3D {
+    for(int i = 0; i < vertexNumber / 3; i++) {
+        QVector3D color {
             static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
             static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
             static_cast <float> (rand()) / static_cast <float> (RAND_MAX)
-        });
+        };
+        colors.append(color);
+        colors.append(color);
+        colors.append(color);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER,VBO);
