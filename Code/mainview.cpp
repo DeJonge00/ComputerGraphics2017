@@ -27,7 +27,11 @@ MainView::MainView(QWidget *parent) : QOpenGLWidget(parent) {
 MainView::~MainView() {
     delete cubeModel;
 
-    // Free Buffer Objects before Vertex Arrays
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &CBO);
+
+    vertices.clear();
 
     // Free the main shader
     delete mainShaderProg;
@@ -49,12 +53,11 @@ void MainView::createShaderPrograms() {
     mainShaderProg->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fragshader.glsl");
     mainShaderProg->link();
 
-    /* Add your other shaders below */
-
-    /* End of custom shaders */
-
     // Store the locations (pointers in gpu memory) of uniforms in Glint's
-
+    mainShaderProg->bind();
+    shaderModel = glGetUniformLocation(mainShaderProg->programId(), "model");
+    shaderView = glGetUniformLocation(mainShaderProg->programId(), "view");
+    shaderProjection = glGetUniformLocation(mainShaderProg->programId(), "projection");
 }
 
 /**
@@ -63,8 +66,20 @@ void MainView::createShaderPrograms() {
  * Creates necessary buffers for your application
  */
 void MainView::createBuffers() {
-    // TODO: implement buffer creation
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
 
+    glGenBuffers(1,&VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,0);
+
+    glGenBuffers(1,&CBO);
+    glBindBuffer(GL_ARRAY_BUFFER, CBO);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,0);
+
+    glBindVertexArray(0);
 }
 
 void MainView::loadModel(QString filename, GLuint bufferObject) {
@@ -74,7 +89,22 @@ void MainView::loadModel(QString filename, GLuint bufferObject) {
 
     Q_UNUSED(bufferObject);
 
-    // TODO: implement loading of model into Buffer Objects
+    vertices = cubeModel->getVertices();
+    vertexNumber = vertices.size();
+
+    srand (static_cast <unsigned> (time(0)));
+    for(int i = 0; i < vertexNumber; i++) {
+        colors.append(QVector3D {
+            static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
+            static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
+            static_cast <float> (rand()) / static_cast <float> (RAND_MAX)
+        });
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER,VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), vertices.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,CBO);
+    glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), colors.data(), GL_STATIC_DRAW);
 }
 
 void MainView::updateBuffers() {
@@ -117,7 +147,7 @@ void MainView::initializeGL() {
     glEnable(GL_DEPTH_TEST);
 
     // Enable backface culling
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 
     // Default is GL_LESS
     glDepthFunc(GL_LEQUAL);
@@ -125,9 +155,34 @@ void MainView::initializeGL() {
     // Set the color of the screen to be black on clear (new frame)
     glClearColor(0.0, 0.0, 0.0, 1.0);
 
-    /* TODO: call your initialization functions here */
+    float tanFov = tan(0.5f * 3.141592653589793238/3);
+    int zNear = 4;
+    int zFar = 100;
+
+    model = QMatrix4x4 {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1};
+    view = QMatrix4x4 {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1};
+    projection = QMatrix4x4 {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1};
+
+    view.lookAt(QVector3D {0, 0, -4}, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
+    projection.perspective(60.0f, 1.0f, 0.1f, 100.0f);
 
     createShaderPrograms();
+
+    glUniformMatrix4fv(shaderModel, 1, GL_FALSE, model.data());
+    glUniformMatrix4fv(shaderView, 1, GL_FALSE, view.data());
+    glUniformMatrix4fv(shaderProjection, 1, GL_FALSE, projection.data());
 
     createBuffers();
 
@@ -159,14 +214,15 @@ void MainView::resizeGL(int newWidth, int newHeight) {
  *
  */
 void MainView::paintGL() {
-
     // Clear the screen before rendering
     glClearColor(0.0f,0.0f,0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     mainShaderProg->bind();
 
-    // TODO: implement your drawing functions
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, vertexNumber);
+    glBindVertexArray(0);
 
     mainShaderProg->release();
 }

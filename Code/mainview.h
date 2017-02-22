@@ -11,6 +11,8 @@
 #include <QOpenGLShaderProgram>
 #include <QTimer>
 #include <QVector3D>
+#include <ctime>
+#include <cstdlib>
 
 class MainView : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
     Q_OBJECT
@@ -24,9 +26,10 @@ public:
     void updateShader(QString name);
     void updateScale(float scale);
 
-    /* Add your public members below */
-
-    /* End of public members */
+    //TODO: decide what should be public and what not
+    QVector<QVector3D> vertices;
+    QVector<QVector3D> colors;
+    int vertexNumber;
 
     QVector3D convertHSLtoRGB(float H, float S, float L);
 
@@ -71,7 +74,10 @@ private:
 
     unsigned numTris;
 
-    /* End of private members */
+    GLuint VAO, VBO, CBO;
+    QMatrix4x4 model, view, projection;
+
+    GLint shaderModel, shaderView, shaderProjection;
 
 private slots:
     void onMessageLogged( QOpenGLDebugMessage Message );
