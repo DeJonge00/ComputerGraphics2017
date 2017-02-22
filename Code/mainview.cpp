@@ -190,7 +190,7 @@ void MainView::resizeGL(int newWidth, int newHeight) {
  *
  */
 void MainView::paintGL() {
-
+    updateCameraPosition();
     updateMatrices();
 
     // Clear the screen before rendering
@@ -210,7 +210,7 @@ void MainView::updateMatrices() {
     view.setToIdentity();
     projection.setToIdentity();
 
-    view.lookAt(QVector3D {0, 0, -8}, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
+    view.lookAt(eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
     projection.perspective(60.0f, 1.0f, 0.1f, 100.0f);
     model = rotation * scaling;
 

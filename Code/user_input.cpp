@@ -62,15 +62,11 @@ void MainView::updateScale(float scale)
 void MainView::keyPressEvent(QKeyEvent *ev)
 {
     switch(ev->key()) {
-    case 'A': qDebug() << "A pressed"; break;
-    default:
-        // ev->key() is an integer. For alpha numeric characters keys it equivalent with the char value ('A' == 65, '1' == 49)
-        // Alternatively, you could use Qt Key enums, see http://doc.qt.io/qt-5/qt.html#Key-enum
-        qDebug() << ev->key() << "pressed";
-        break;
+        case 'W': wpressed = true; break;
+        case 'A': apressed = true; break;
+        case 'S': spressed = true; break;
+        case 'D': dpressed = true; break;
     }
-
-    // Used to update the screen after changes
     update();
 }
 
@@ -78,13 +74,22 @@ void MainView::keyPressEvent(QKeyEvent *ev)
 void MainView::keyReleaseEvent(QKeyEvent *ev)
 {
     switch(ev->key()) {
-    case 'A': qDebug() << "A released"; break;
-    default:
-        qDebug() << ev->key() << "released";
-        break;
+        case 'W': wpressed = false; break;
+        case 'A': apressed = false; break;
+        case 'S': spressed = false; break;
+        case 'D': dpressed = false; break;
     }
-
     update();
+}
+
+void MainView::updateCameraPosition() {
+    eye = QVector3D {
+        eye.x() + (dpressed ? 1 : 0) - (apressed ? 1 : 0),
+        eye.y() + (false ? 1 : 0) - (false ? 1 : 0),
+        eye.z() + (wpressed ? 1 : 0) - (spressed ? 1 : 0)
+    };
+
+    qDebug() << wpressed << apressed << spressed << dpressed;
 }
 
 // Triggered by clicking two subsequent times on any mouse button
@@ -109,7 +114,6 @@ void MainView::mousePressEvent(QMouseEvent *ev)
 {
     prevMouseX = ev->x();
     prevMouseY = ev->y();
-    // Do not remove the line below, clicking must focus on this widget!
     this->setFocus();
 }
 

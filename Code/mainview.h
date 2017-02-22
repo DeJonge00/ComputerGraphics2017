@@ -59,6 +59,7 @@ private:
     void updateBuffers();
     void updateUniforms();
     void updateMatrices();
+    void updateCameraPosition();
 
     // Raytracer scene functions
     void renderSphere(QVector3D pos, QVector3D color, QVector4D material, QVector3D lightpos);
@@ -84,6 +85,9 @@ private:
 
     int prevMouseX, prevMouseY;
     float currentScale = 1;
+
+    bool wpressed, apressed, spressed, dpressed;
+    QVector3D eye {0,0,-4};
 
     GLint shaderModel, shaderView, shaderProjection;
 
