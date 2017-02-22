@@ -58,7 +58,6 @@ private:
     void createBuffers();
     void updateBuffers();
     void updateUniforms();
-    void createMatrices();
     void updateMatrices();
 
     // Raytracer scene functions
@@ -80,7 +79,11 @@ private:
 
     GLuint VAO, VBO, CBO;
     QMatrix4x4 model, view, projection;
-    QMatrix3x3 rotation;
+    QMatrix4x4 rotation, scaling;
+    QVector3D currentRotation;
+
+    int prevMouseX, prevMouseY;
+    float currentScale = 1;
 
     GLint shaderModel, shaderView, shaderProjection;
 

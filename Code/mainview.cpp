@@ -123,12 +123,6 @@ void MainView::updateUniforms() {
 
 }
 
-void MainView::createMatrices() {
-    model.setToIdentity();
-    view.setToIdentity();
-    projection.setToIdentity();
-}
-
 /**
  * @brief MainView::initializeGL
  *
@@ -165,8 +159,6 @@ void MainView::initializeGL() {
     glClearColor(0.0, 0.0, 0.0, 1.0);
 
     createShaderPrograms();
-
-    createMatrices();
 
     createBuffers();
 
@@ -220,8 +212,7 @@ void MainView::updateMatrices() {
 
     view.lookAt(QVector3D {0, 0, -8}, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
     projection.perspective(60.0f, 1.0f, 0.1f, 100.0f);
-
-    qDebug() << model;
+    model = rotation * scaling;
 
     mainShaderProg->bind();
     glUniformMatrix4fv(shaderModel, 1, GL_FALSE, model.data());

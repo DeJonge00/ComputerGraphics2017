@@ -25,7 +25,7 @@ void MainView::updateRotation(int x, int y, int z)
         0, 0, 1, 0,
         0, 0, 0, 1
     };
-    model = rotZ * rotY * rotX;
+    rotation = rotX * rotY * rotZ;
 
     update();
 }
@@ -48,9 +48,12 @@ void MainView::updateShader(QString name)
 
 void MainView::updateScale(float scale)
 {
-    qDebug() << "updateScale(" << scale << ")";
-    // TODO: update model scale
-
+    scaling = QMatrix4x4 {
+        scale, 0, 0, 0,
+        0, scale, 0, 0,
+        0, 0, scale, 0,
+        0, 0, 0, 1
+    };
     update();
 }
 
@@ -88,25 +91,24 @@ void MainView::keyReleaseEvent(QKeyEvent *ev)
 // It also fires two mousePress and mouseRelease events!
 void MainView::mouseDoubleClickEvent(QMouseEvent *ev)
 {
-    qDebug() << "Mouse double clicked:" << ev->button();
 
-    update();
 }
 
 // Triggered when moving the mouse inside the window (only when the mouse is clicked!)
 void MainView::mouseMoveEvent(QMouseEvent *ev)
 {
-    qDebug() << "x" << ev->x() << "y" << ev->y();
-
-    update();
+    currentRotation.setX(ev->x() - prevMouseX + currentRotation.x());
+    currentRotation.setY(ev->y() - prevMouseY + currentRotation.y());
+    prevMouseX = ev->x();
+    prevMouseY = ev->y();
+    updateRotation(-currentRotation.y(),currentRotation.x(),0);
 }
 
 // Triggered when pressing any mouse button
 void MainView::mousePressEvent(QMouseEvent *ev)
 {
-    qDebug() << "Mouse button pressed:" << ev->button();
-
-    update();
+    prevMouseX = ev->x();
+    prevMouseY = ev->y();
     // Do not remove the line below, clicking must focus on this widget!
     this->setFocus();
 }
@@ -114,16 +116,19 @@ void MainView::mousePressEvent(QMouseEvent *ev)
 // Triggered when releasing any mouse button
 void MainView::mouseReleaseEvent(QMouseEvent *ev)
 {
-    qDebug() << "Mouse button released" << ev->button();
 
-    update();
 }
 
 // Triggered when clicking scrolling with the scroll wheel on the mouse
 void MainView::wheelEvent(QWheelEvent *ev)
 {
-    // Implement something
-    qDebug() << "Mouse wheel:" << ev->delta();
-
-    update();
+    if (ev->angleDelta().y() >= 0) {
+        currentScale *= ev->angleDelta().y();
+        currentScale /= 100;
+    } else {
+        currentScale /= -ev->angleDelta().y();
+        currentScale *= 100;
+    }
+    qDebug() << currentScale << ev->angleDelta();
+    updateScale(currentScale);
 }
