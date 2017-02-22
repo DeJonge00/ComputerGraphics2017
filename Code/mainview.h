@@ -14,6 +14,8 @@
 #include <ctime>
 #include <cstdlib>
 
+#define pi 3.141592653589793238
+
 class MainView : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
     Q_OBJECT
 
@@ -30,6 +32,8 @@ public:
     QVector<QVector3D> vertices;
     QVector<QVector3D> colors;
     int vertexNumber;
+
+    int rotX = 0, rotY = 0, rotZ = 0;
 
     QVector3D convertHSLtoRGB(float H, float S, float L);
 
@@ -56,6 +60,7 @@ private:
     void createBuffers();
     void updateBuffers();
     void updateUniforms();
+    void createMatrices();
 
     // Raytracer scene functions
     void renderSphere(QVector3D pos, QVector3D color, QVector4D material, QVector3D lightpos);

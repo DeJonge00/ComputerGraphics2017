@@ -158,34 +158,7 @@ void MainView::initializeGL() {
     // Set the color of the screen to be black on clear (new frame)
     glClearColor(0.0, 0.0, 0.0, 1.0);
 
-    float tanFov = tan(0.5f * 3.141592653589793238/3);
-    int zNear = 4;
-    int zFar = 100;
-
-    model = QMatrix4x4 {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1};
-    view = QMatrix4x4 {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1};
-    projection = QMatrix4x4 {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1};
-
-    view.lookAt(QVector3D {0, 0, -4}, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
-    projection.perspective(60.0f, 1.0f, 0.1f, 100.0f);
-
     createShaderPrograms();
-
-    glUniformMatrix4fv(shaderModel, 1, GL_FALSE, model.data());
-    glUniformMatrix4fv(shaderView, 1, GL_FALSE, view.data());
-    glUniformMatrix4fv(shaderProjection, 1, GL_FALSE, projection.data());
 
     createBuffers();
 
@@ -217,6 +190,9 @@ void MainView::resizeGL(int newWidth, int newHeight) {
  *
  */
 void MainView::paintGL() {
+
+    createMatrices();
+
     // Clear the screen before rendering
     glClearColor(0.0f,0.0f,0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -228,6 +204,38 @@ void MainView::paintGL() {
     glBindVertexArray(0);
 
     mainShaderProg->release();
+}
+
+void MainView::createMatrices() {
+    float tanFov = tan(0.5f * pi / 3);
+    int zNear = 4;
+    int zFar = 100;
+
+    model = QMatrix4x4 {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1};
+    view = QMatrix4x4 {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1};
+    projection = QMatrix4x4 {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1};
+    QVector3D eye {cos(rotY*pi/180) * cos(rotZ*pi/180),
+                   sin(rotX*pi/180) * sin(rotZ*pi/180),
+                   sin(rotY*pi/180) * cos(rotX*pi/180)};
+    view.lookAt(4 * eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
+    projection.perspective(60.0f, 1.0f, 0.1f, 100.0f);
+
+    mainShaderProg->bind();
+    glUniformMatrix4fv(shaderModel, 1, GL_FALSE, model.data());
+    glUniformMatrix4fv(shaderView, 1, GL_FALSE, view.data());
+    glUniformMatrix4fv(shaderProjection, 1, GL_FALSE, projection.data());
 }
 
 // Add your function implementations below
