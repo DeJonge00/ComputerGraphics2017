@@ -162,7 +162,7 @@ void MainView::initializeGL() {
 
     createBuffers();
 
-    loadModel(":/models/cube.obj", cubeBO);
+    loadModel(":/models/sphere.obj", cubeBO);
 
     // For animation, you can start your timer here
 
@@ -211,7 +211,7 @@ void MainView::updateMatrices() {
     projection.setToIdentity();
 
     view.lookAt(eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
-    projection.perspective(60.0f, 1.0f, 0.1f, 100.0f);
+    projection.perspective(60.0f, (float)width() / (float)height(), 0.1f, 100.0f);
     model = rotation * scaling;
 
     mainShaderProg->bind();

@@ -86,7 +86,7 @@ private:
     int prevMouseX, prevMouseY;
     float currentScale = 1;
 
-    bool wpressed, apressed, spressed, dpressed;
+    bool forpressed, backpressed, leftpressed, rightpressed, uppressed, downpressed;
     QVector3D eye {0,0,-4};
 
     GLint shaderModel, shaderView, shaderProjection;

@@ -62,10 +62,13 @@ void MainView::updateScale(float scale)
 void MainView::keyPressEvent(QKeyEvent *ev)
 {
     switch(ev->key()) {
-        case 'W': wpressed = true; break;
-        case 'A': apressed = true; break;
-        case 'S': spressed = true; break;
-        case 'D': dpressed = true; break;
+        case 'W': forpressed = true; break;
+        case 'A': leftpressed = true; break;
+        case 'S': backpressed = true; break;
+        case 'D': rightpressed = true; break;
+        case 40 : uppressed = true; break; //space
+        case 16 : downpressed = true; break; //shift
+        qDebug() << ev->key();
     }
     update();
 }
@@ -74,22 +77,22 @@ void MainView::keyPressEvent(QKeyEvent *ev)
 void MainView::keyReleaseEvent(QKeyEvent *ev)
 {
     switch(ev->key()) {
-        case 'W': wpressed = false; break;
-        case 'A': apressed = false; break;
-        case 'S': spressed = false; break;
-        case 'D': dpressed = false; break;
+        case 'W': forpressed = false; break;
+        case 'A': leftpressed = false; break;
+        case 'S': backpressed = false; break;
+        case 'D': rightpressed = false; break;
+        case 40 : uppressed = false; break;
+        case 16 : downpressed = false; break;
     }
     update();
 }
 
 void MainView::updateCameraPosition() {
     eye = QVector3D {
-        eye.x() + (dpressed ? 1 : 0) - (apressed ? 1 : 0),
-        eye.y() + (false ? 1 : 0) - (false ? 1 : 0),
-        eye.z() + (wpressed ? 1 : 0) - (spressed ? 1 : 0)
+        eye.x() + (rightpressed ? 1 : 0) - (leftpressed ? 1 : 0),
+        eye.y() + (uppressed ? 1 : 0) - (downpressed ? 1 : 0),
+        eye.z() + (forpressed ? 1 : 0) - (backpressed ? 1 : 0)
     };
-
-    qDebug() << wpressed << apressed << spressed << dpressed;
 }
 
 // Triggered by clicking two subsequent times on any mouse button
