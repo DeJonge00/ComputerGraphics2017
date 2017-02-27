@@ -17,11 +17,12 @@ out vec4 fColor;
 
 void main()
 {
-    vec3 rayDirection = normalize(vertCoordinates - lightPosition);
-    vec3 R = reflect(rayDirection, vertNormal);
+    vec3 L = normalize(lightPosition - vertCoordinates); //direction of the ray
+    vec3 V; //direction to the eye
+    vec3 R = reflect(L, vertNormal); //reflection direction
     vec3 ambient = materialColor * phongComponents[0];
-    vec3 diffuse = max(0, dot(vertNormal, rayDirection)) * materialColor;// * lightColor * phongComponents[1];
-    vec3 specular;// = pow() * lightColor * phongComponents[2];
+    vec3 diffuse = max(0, dot(vertNormal, L)) * materialColor;// * lightColor * phongComponents[1];
+    vec3 specular = pow(max(0, dot(R, V)), phongComponents[3]) * lightColor * phongComponents[2];
     fColor = vec4(ambient + diffuse + specular, 1.0);
 }
 
