@@ -61,6 +61,9 @@ void MainView::updateScale(float scale)
 // Triggered by pressing a key
 void MainView::keyPressEvent(QKeyEvent *ev)
 {
+    if (viewMode != 1) {
+        return;
+    }
     switch(ev->key()) {
         case 'W': forpressed = true; break;
         case 'A': leftpressed = true; break;
@@ -76,6 +79,9 @@ void MainView::keyPressEvent(QKeyEvent *ev)
 // Triggered by releasing a key
 void MainView::keyReleaseEvent(QKeyEvent *ev)
 {
+    if (viewMode != 1) {
+        return;
+    }
     switch(ev->key()) {
         case 'W': forpressed = false; break;
         case 'A': leftpressed = false; break;
@@ -88,6 +94,9 @@ void MainView::keyReleaseEvent(QKeyEvent *ev)
 }
 
 void MainView::updateCameraPosition() {
+    if (viewMode != 0) {
+        return;
+    }
     eye = QVector3D {
         eye.x() + (rightpressed ? 1 : 0) - (leftpressed ? 1 : 0),
         eye.y() + (uppressed ? 1 : 0) - (downpressed ? 1 : 0),

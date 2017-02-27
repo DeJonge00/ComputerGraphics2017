@@ -65,6 +65,7 @@ void MainView::createShaderPrograms() {
     shaderPosition = glGetUniformLocation(mainShaderProg->programId(), "position");
     shaderLightPos = glGetUniformLocation(mainShaderProg->programId(), "lightPosition");
     shaderLightColor = glGetUniformLocation(mainShaderProg->programId(), "lightColor");
+    shaderEyePos = glGetUniformLocation(mainShaderProg->programId(), "eyePosition");
 }
 
 /**
@@ -89,7 +90,7 @@ void MainView::createBuffers() {
     glGenBuffers(1,&NBO);
     glBindBuffer(GL_ARRAY_BUFFER, NBO);
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,0);
+    glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,0,0);
 
     glBindVertexArray(0);
 }
@@ -249,4 +250,5 @@ void MainView::updateMatrices() {
     glUniformMatrix4fv(shaderView, 1, GL_FALSE, view.data());
     glUniformMatrix4fv(shaderProjection, 1, GL_FALSE, projection.data());
     glUniformMatrix4fv(shaderNormal, 1, GL_FALSE, normal.data());
+    glUniform3f(shaderEyePos, eye[0], eye[1], eye[2]);
 }
