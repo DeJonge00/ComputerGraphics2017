@@ -178,13 +178,9 @@ void MainView::initializeGL() {
 
     createBuffers();
 
-    if (objectMode == 0) {
-        eye = QVector3D {0,0,-4};
-        loadModel(":/models/cube.obj", cubeBO);
-    } else if (objectMode == 1) {
-        eye = QVector3D {200,200,1000};
-        loadModel(":/models/sphere.obj", cubeBO);
-    }
+    eye = QVector3D {200,200,1000};
+    viewDirection = - eye;
+    loadModel(":/models/sphere.obj", cubeBO);
 
     // For animation, you can start your timer here
 
@@ -222,11 +218,7 @@ void MainView::paintGL() {
     mainShaderProg->bind();
 
     glBindVertexArray(VAO);
-    if (objectMode == 0) {
-        glDrawArrays(GL_TRIANGLES, 0, vertexNumber);
-    } else if (objectMode == 1) {
-        renderRaytracerScene();
-    }
+    renderRaytracerScene();
     glBindVertexArray(0);
 
     mainShaderProg->release();
@@ -236,14 +228,14 @@ void MainView::updateMatrices() {
     view.setToIdentity();
     projection.setToIdentity();
 
-    if (objectMode == 0) {
+    if (viewMode == 0) {
         view.lookAt(eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
-        projection.perspective(60.0f, (float)width() / (float)height(), 0.1f, 400.0f);
-    } else if (objectMode == 1) {
-        view.lookAt(eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
-        projection.perspective(30.0f, (float)width() / (float)height(), 0.1f, 8000.0f);
+    } else {
+        view.lookAt(eye, eye + viewDirection, QVector3D {0, 1, 0});
     }
+    projection.perspective(30.0f, (float)width() / (float)height(), 0.1f, 8000.0f);
     model = rotation * scaling;
+    normal = rotation;
 
     mainShaderProg->bind();
     glUniformMatrix4fv(shaderModel, 1, GL_FALSE, model.data());

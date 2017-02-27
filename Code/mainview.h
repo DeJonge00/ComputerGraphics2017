@@ -93,10 +93,10 @@ private:
     GLint shaderModel, shaderView, shaderProjection, shaderNormal, shaderPosition;
     GLint shaderMatColor, shaderComponents, shaderLightPos, shaderLightColor, shaderEyePos;
 
-    int objectMode = 0; //0=cube, 1=sphere
     int viewMode = 0; //0=normal, 1=first person
 
     QVector3D viewDirection;
+    int moveSpeed = 8;
 
 private slots:
     void onMessageLogged( QOpenGLDebugMessage Message );

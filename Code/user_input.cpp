@@ -26,7 +26,6 @@ void MainView::updateRotation(int x, int y, int z)
         0, 0, 0, 1
     };
     rotation = rotX * rotY * rotZ;
-
     update();
 }
 
@@ -61,7 +60,12 @@ void MainView::updateScale(float scale)
 // Triggered by pressing a key
 void MainView::keyPressEvent(QKeyEvent *ev)
 {
+    if (ev->key() == 32) {
+        viewMode = 1 - viewMode; //spacebar switches between viewmodes
+    }
+
     if (viewMode != 1) {
+        update();
         return;
     }
     switch(ev->key()) {
@@ -69,9 +73,8 @@ void MainView::keyPressEvent(QKeyEvent *ev)
         case 'A': leftpressed = true; break;
         case 'S': backpressed = true; break;
         case 'D': rightpressed = true; break;
-        case 40 : uppressed = true; break; //space
-        case 16 : downpressed = true; break; //shift
-        qDebug() << ev->key();
+        case 'E': uppressed = true; break;
+        case 'Q': downpressed = true; break;
     }
     update();
 }
@@ -87,21 +90,31 @@ void MainView::keyReleaseEvent(QKeyEvent *ev)
         case 'A': leftpressed = false; break;
         case 'S': backpressed = false; break;
         case 'D': rightpressed = false; break;
-        case 40 : uppressed = false; break;
-        case 16 : downpressed = false; break;
+        case 'E': uppressed = false; break;
+        case 'Q': downpressed = false; break;
     }
     update();
 }
 
 void MainView::updateCameraPosition() {
-    if (viewMode != 0) {
-        return;
-    }
-    eye = QVector3D {
-        eye.x() + (rightpressed ? 1 : 0) - (leftpressed ? 1 : 0),
-        eye.y() + (uppressed ? 1 : 0) - (downpressed ? 1 : 0),
-        eye.z() + (forpressed ? 1 : 0) - (backpressed ? 1 : 0)
+    QVector3D movement {0, 0, 0};
+    QVector3D noMovement {0, 0, 0};
+    QVector3D right {
+        -viewDirection[2],
+        viewDirection[1],
+        viewDirection[0]
     };
+    QVector3D up {
+        viewDirection[0],
+        -viewDirection[2],
+        viewDirection[1]
+    };
+    qDebug() << viewDirection;
+    movement += (rightpressed ? right : noMovement) - (leftpressed ? right : noMovement);
+    movement += (uppressed ? up : noMovement) - (downpressed ? up : noMovement);
+    movement += (forpressed ? viewDirection : noMovement) - (backpressed ? viewDirection : noMovement);
+
+    eye += moveSpeed * movement;
 }
 
 // Triggered by clicking two subsequent times on any mouse button
@@ -114,11 +127,21 @@ void MainView::mouseDoubleClickEvent(QMouseEvent *ev)
 // Triggered when moving the mouse inside the window (only when the mouse is clicked!)
 void MainView::mouseMoveEvent(QMouseEvent *ev)
 {
-    currentRotation.setX(ev->x() - prevMouseX + currentRotation.x());
-    currentRotation.setY(ev->y() - prevMouseY + currentRotation.y());
+    currentRotation[0] += ev->x() - prevMouseX;
+    currentRotation[1] += ev->y() - prevMouseY;
+    if (viewMode == 0) {
+        updateRotation(currentRotation.y(),currentRotation.x(),0);
+    } else {
+        viewDirection = QVector3D {
+            cos(-currentRotation[0] / 1440 * pi - pi/2) * cos(currentRotation[1] / 1440 * pi + pi),
+            sin(currentRotation[1] / 1440 * pi + pi),
+            sin(-currentRotation[0] / 1440 * pi - pi/2)
+        };
+        viewDirection = viewDirection.normalized();
+    }
     prevMouseX = ev->x();
     prevMouseY = ev->y();
-    updateRotation(-currentRotation.y(),currentRotation.x(),0);
+    update();
 }
 
 // Triggered when pressing any mouse button
