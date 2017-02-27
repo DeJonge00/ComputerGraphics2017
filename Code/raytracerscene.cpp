@@ -2,14 +2,12 @@
 
 void MainView::renderSphere(QVector3D pos, QVector3D color, QVector4D material, QVector3D lightpos)
 {
-    // OpenGL assignment 1, part 2: create a function to render the sphere
-    // Use Model(":/models/sphere.obj") for the model
-
-    // you must remove these Q_UNUSED when you implement this function
-    Q_UNUSED(pos)
-    Q_UNUSED(color)
-    Q_UNUSED(material)
-    Q_UNUSED(lightpos)
+    glUniform3f(shaderMatColor, color[0], color[1], color[2]);
+    glUniform3f(shaderPosition, pos[0], pos[1], pos[2]);
+    glUniform3f(shaderLightPos, lightpos[0], lightpos[1], lightpos[2]);
+    glUniform3f(shaderLightColor, 1.0f, 1.0f, 1.0f);
+    glUniform4f(shaderComponents, material[0], material[1], material[2], material[3]);
+    glDrawArrays(GL_TRIANGLES, 0, vertexNumber);
 }
 
 /**

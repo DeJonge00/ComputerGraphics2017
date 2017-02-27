@@ -30,6 +30,7 @@ MainView::~MainView() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &CBO);
+    glDeleteBuffers(1, &NBO);
 
     vertices.clear();
 
@@ -58,6 +59,12 @@ void MainView::createShaderPrograms() {
     shaderModel = glGetUniformLocation(mainShaderProg->programId(), "model");
     shaderView = glGetUniformLocation(mainShaderProg->programId(), "view");
     shaderProjection = glGetUniformLocation(mainShaderProg->programId(), "projection");
+    shaderNormal = glGetUniformLocation(mainShaderProg->programId(), "normal");
+    shaderMatColor = glGetUniformLocation(mainShaderProg->programId(), "materialColor");
+    shaderComponents = glGetUniformLocation(mainShaderProg->programId(), "phongComponents");
+    shaderPosition = glGetUniformLocation(mainShaderProg->programId(), "position");
+    shaderLightPos = glGetUniformLocation(mainShaderProg->programId(), "lightPosition");
+    shaderLightColor = glGetUniformLocation(mainShaderProg->programId(), "lightColor");
 }
 
 /**
@@ -79,6 +86,11 @@ void MainView::createBuffers() {
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,0);
 
+    glGenBuffers(1,&NBO);
+    glBindBuffer(GL_ARRAY_BUFFER, NBO);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,0);
+
     glBindVertexArray(0);
 }
 
@@ -90,6 +102,7 @@ void MainView::loadModel(QString filename, GLuint bufferObject) {
     Q_UNUSED(bufferObject);
 
     vertices = cubeModel->getVertices();
+    normals = cubeModel->getNormals();
     vertexNumber = vertices.size();
 
     srand (static_cast <unsigned> (time(0)));
@@ -108,6 +121,8 @@ void MainView::loadModel(QString filename, GLuint bufferObject) {
     glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER,CBO);
     glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), colors.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,NBO);
+    glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), normals.data(), GL_STATIC_DRAW);
 }
 
 void MainView::updateBuffers() {
@@ -162,7 +177,13 @@ void MainView::initializeGL() {
 
     createBuffers();
 
-    loadModel(":/models/sphere.obj", cubeBO);
+    if (objectMode == 0) {
+        eye = QVector3D {0,0,-4};
+        loadModel(":/models/cube.obj", cubeBO);
+    } else if (objectMode == 1) {
+        eye = QVector3D {200,200,1000};
+        loadModel(":/models/sphere.obj", cubeBO);
+    }
 
     // For animation, you can start your timer here
 
@@ -200,7 +221,11 @@ void MainView::paintGL() {
     mainShaderProg->bind();
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, vertexNumber);
+    if (objectMode == 0) {
+        glDrawArrays(GL_TRIANGLES, 0, vertexNumber);
+    } else if (objectMode == 1) {
+        renderRaytracerScene();
+    }
     glBindVertexArray(0);
 
     mainShaderProg->release();
@@ -210,12 +235,18 @@ void MainView::updateMatrices() {
     view.setToIdentity();
     projection.setToIdentity();
 
-    view.lookAt(eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
-    projection.perspective(60.0f, (float)width() / (float)height(), 0.1f, 100.0f);
+    if (objectMode == 0) {
+        view.lookAt(eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
+        projection.perspective(60.0f, (float)width() / (float)height(), 0.1f, 400.0f);
+    } else if (objectMode == 1) {
+        view.lookAt(eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
+        projection.perspective(30.0f, (float)width() / (float)height(), 0.1f, 8000.0f);
+    }
     model = rotation * scaling;
 
     mainShaderProg->bind();
     glUniformMatrix4fv(shaderModel, 1, GL_FALSE, model.data());
     glUniformMatrix4fv(shaderView, 1, GL_FALSE, view.data());
     glUniformMatrix4fv(shaderProjection, 1, GL_FALSE, projection.data());
+    glUniformMatrix4fv(shaderNormal, 1, GL_FALSE, normal.data());
 }

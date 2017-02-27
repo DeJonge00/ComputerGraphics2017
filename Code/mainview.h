@@ -30,6 +30,7 @@ public:
 
     //TODO: decide what should be public and what not
     QVector<QVector3D> vertices;
+    QVector<QVector3D> normals;
     QVector<QVector3D> colors;
     int vertexNumber;
 
@@ -78,8 +79,8 @@ private:
 
     unsigned numTris;
 
-    GLuint VAO, VBO, CBO;
-    QMatrix4x4 model, view, projection;
+    GLuint VAO, VBO, CBO, NBO;
+    QMatrix4x4 model, view, projection, normal;
     QMatrix4x4 rotation, scaling;
     QVector3D currentRotation;
 
@@ -87,9 +88,12 @@ private:
     float currentScale = 1;
 
     bool forpressed, backpressed, leftpressed, rightpressed, uppressed, downpressed;
-    QVector3D eye {0,0,-4};
+    QVector3D eye;
 
-    GLint shaderModel, shaderView, shaderProjection;
+    GLint shaderModel, shaderView, shaderProjection, shaderNormal, shaderPosition;
+    GLint shaderMatColor, shaderComponents, shaderLightPos, shaderLightColor;
+
+    int objectMode = 1; //0=cube, 1=sphere
 
 private slots:
     void onMessageLogged( QOpenGLDebugMessage Message );
