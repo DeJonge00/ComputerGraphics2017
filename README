@@ -6,3 +6,24 @@ Also describe what controls (key short-cuts, mouse clicks, mouse movement etc) a
 
 If you have any suggestions/feedback for improving the practical assignments or support from teaching assistants, you may include it here OR post in anonymously on Nestor under Feedback.
 
+		
+		
+		README OpenGL 1 Rick de Jonge & Jannick Boonstra
+
+1 Transformations and viewing interaction
+
+We implemented viewing the cube, rotation and scaling following the 
+steps in the provided pdf. We also added a new mode (switch modes with space)
+which allows for a FPS-like interaction: move the camera with w/a/s/d/q/e and 
+click-and-hold the mouse to rotate the camera around the eye, opposed to rotating
+the scene around the origin in the standard mode.
+
+2 Phong shading with GLSL
+
+The second exersize was also done following the steps in the pdf closely.
+When the scene is rotated, the light moves with the objects, so you will be 
+able to see the dark side of the spheres. 
+
+When we test without using the normal matrix, the specular light doess not change
+when rotating the scene, while it should. With the normal matrix included in the 
+specular light of a point, the specular light changes position on the sphere.
