@@ -13,6 +13,8 @@
 #include <QVector3D>
 #include <ctime>
 #include <cstdlib>
+#include <QImage>
+#include <QImageReader>
 
 #define pi 3.141592653589793238
 
@@ -35,6 +37,9 @@ public:
     int vertexNumber;
 
     QVector3D convertHSLtoRGB(float H, float S, float L);
+
+    void loadTexture(QString file, GLuint texPtr);
+    QVector<quint8> imageToBytes(QImage image);
 
 protected:
     void initializeGL();
@@ -64,6 +69,7 @@ private:
 
     // Raytracer scene functions
     void renderSphere(QVector3D pos, QVector3D color, QVector4D material, QVector3D lightpos);
+    void renderCube(QVector3D pos, QVector3D lightpos);
     void renderRaytracerScene();
 
     /* Add your private members below */
@@ -79,7 +85,7 @@ private:
 
     unsigned numTris;
 
-    GLuint VAO, VBO, CBO, NBO;
+    GLuint VAO, VBO, CBO, NBO, TBO;
     QMatrix4x4 model, view, projection, normal;
     QMatrix4x4 rotation, scaling;
     QVector3D currentRotation;
@@ -92,6 +98,10 @@ private:
 
     GLint shaderModel, shaderView, shaderProjection, shaderNormal, shaderPosition;
     GLint shaderMatColor, shaderComponents, shaderLightPos, shaderLightColor, shaderEyePos;
+    GLint shaderTexture, shaderSampler;
+
+    GLuint texPtr;
+    QVector<QVector2D> textureCoords;
 
     int viewMode = 0; //0=normal, 1=first person
 

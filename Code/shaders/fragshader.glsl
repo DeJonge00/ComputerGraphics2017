@@ -5,12 +5,14 @@ in vec3 vertColor;
 in vec4 vertNormal;
 in vec3 vertCoordinates;
 in vec3 lightPos;
+in vec2 vertexTexCoords;
 
 // Specify the Uniforms of the vertex shaders
 uniform vec3 materialColor;
 uniform vec4 phongComponents; //ambient, diffuse, specular, shininess
 uniform vec3 lightColor;
 uniform vec3 eyePosition;
+uniform sampler2D sampler;
 
 // Specify the output of the fragment shader
 // Usually a vec4 describing a color (Red, Green, Blue, Alpha/Transparency)
@@ -25,7 +27,6 @@ void main()
     vec3 ambient = materialColor * phongComponents[0];
     vec3 diffuse = max(0, dot(N, L)) * materialColor * lightColor * phongComponents[1];
     vec3 specular = pow(max(0, dot(R, V)), phongComponents[3]) * lightColor * phongComponents[2];
-    fColor = vec4(ambient + diffuse + specular, 1.0);
+    //fColor = vec4(ambient + diffuse + specular, 1.0);
+    fColor = texture2D(sampler, vertexTexCoords);
 }
-
-//fColor = vec4(vertColor, 1.0);

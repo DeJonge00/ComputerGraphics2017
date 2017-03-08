@@ -4,24 +4,24 @@
 
 void MainView::updateRotation(int x, int y, int z)
 {
-    double xrad = x*pi/180;
-    double yrad = y*pi/180;
-    double zrad = z*pi/180;
+    float xrad = x*pi/180;
+    float yrad = y*pi/180;
+    float zrad = z*pi/180;
     QMatrix4x4 rotX {
         1, 0, 0, 0,
-        0, cos(xrad), -sin(xrad), 0,
-        0, sin(xrad), cos(xrad), 0,
+        0, cosf(xrad), -sinf(xrad), 0,
+        0, sinf(xrad), cosf(xrad), 0,
         0, 0, 0, 1
     };
     QMatrix4x4 rotY {
-        cos(yrad), 0, sin(yrad), 0,
+        cosf(yrad), 0, sinf(yrad), 0,
         0, 1, 0, 0,
-        -sin(yrad), 0, cos(yrad), 0,
+        -sinf(yrad), 0, cosf(yrad), 0,
         0, 0, 0, 1
     };
     QMatrix4x4 rotZ {
-        cos(zrad), -sin(zrad), 0, 0,
-        sin(zrad), cos(zrad), 0, 0,
+        cosf(zrad), -sinf(zrad), 0, 0,
+        sinf(zrad), cosf(zrad), 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
     };
@@ -109,7 +109,6 @@ void MainView::updateCameraPosition() {
         -viewDirection[2],
         viewDirection[1]
     };
-    qDebug() << viewDirection;
     movement += (rightpressed ? right : noMovement) - (leftpressed ? right : noMovement);
     movement += (uppressed ? up : noMovement) - (downpressed ? up : noMovement);
     movement += (forpressed ? viewDirection : noMovement) - (backpressed ? viewDirection : noMovement);
@@ -133,9 +132,9 @@ void MainView::mouseMoveEvent(QMouseEvent *ev)
         updateRotation(currentRotation.y(),currentRotation.x(),0);
     } else {
         viewDirection = QVector3D {
-            cos(-currentRotation[0] / 1440 * pi - pi/2) * cos(currentRotation[1] / 1440 * pi + pi),
-            sin(currentRotation[1] / 1440 * pi + pi),
-            sin(-currentRotation[0] / 1440 * pi - pi/2)
+            cosf(-currentRotation[0] / 1440 * pi - pi/2) * cosf(currentRotation[1] / 1440 * pi + pi),
+            sinf(currentRotation[1] / 1440 * pi + pi),
+            sinf(-currentRotation[0] / 1440 * pi - pi/2)
         };
         viewDirection = viewDirection.normalized();
     }
@@ -168,6 +167,5 @@ void MainView::wheelEvent(QWheelEvent *ev)
         currentScale /= -ev->angleDelta().y();
         currentScale *= 100;
     }
-    qDebug() << currentScale << ev->angleDelta();
     updateScale(currentScale);
 }
