@@ -25,7 +25,10 @@ MainView::MainView(QWidget *parent) : QOpenGLWidget(parent) {
  *
  */
 MainView::~MainView() {
-    delete cubeModel;
+    for(int i = 0; i < models.size(); i++) {
+        delete models[i];
+    }
+    models.clear();
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
@@ -66,6 +69,7 @@ void MainView::createShaderPrograms() {
     shaderMatColor = glGetUniformLocation(mainShaderProg->programId(), "materialColor");
     shaderComponents = glGetUniformLocation(mainShaderProg->programId(), "phongComponents");
     shaderPosition = glGetUniformLocation(mainShaderProg->programId(), "position");
+    shaderSize = glGetUniformLocation(mainShaderProg->programId(), "size");
     shaderLightPos = glGetUniformLocation(mainShaderProg->programId(), "lightPosition");
     shaderLightColor = glGetUniformLocation(mainShaderProg->programId(), "lightColor");
     shaderEyePos = glGetUniformLocation(mainShaderProg->programId(), "eyePosition");
@@ -106,56 +110,45 @@ void MainView::createBuffers() {
 
 void MainView::loadModel(QString filename, GLuint bufferObject) {
 
-    cubeModel = new Model(filename);
-    numTris = cubeModel->getNumTriangles();
+    models.append(new Model(filename));
+    models[models.size() - 1]->unitize();
+    numTris = models[models.size() - 1]->getNumTriangles();
 
     Q_UNUSED(bufferObject);
-
-    vertices = cubeModel->getVertices();
-    normals = cubeModel->getNormals();
-    vertexNumber = vertices.size();
-    textureCoords = cubeModel->getTextureCoords();
-
-    srand (static_cast <unsigned> (time(0)));
-    for(int i = 0; i < vertexNumber / 3; i++) {
-        QVector3D color {
-            static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
-            static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
-            static_cast <float> (rand()) / static_cast <float> (RAND_MAX)
-        };
-        colors.append(color);
-        colors.append(color);
-        colors.append(color);
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER,VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), vertices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER,CBO);
-    glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), colors.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER,NBO);
-    glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), normals.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER,TBO);
-    glBufferData(GL_ARRAY_BUFFER, textureCoords.size() * sizeof(QVector2D), textureCoords.data(), GL_STATIC_DRAW);
 }
 
-void MainView::loadTexture(QString file, GLuint texPtr) {
+void MainView::loadTexture(QString file) {
     QImageReader imgreader(file);
     QImage img = imgreader.read();
-    QVector<quint8> bytes = imageToBytes(img);
+    textures.append(imageToBytes(img));
+    texWidths.append(img.width());
+    texHeights.append(img.height());
+}
+
+void MainView::updateBuffers(int index) {
+    vertices = models[index]->getVertices();
+    normals = models[index]->getNormals();
+    vertexNumber = vertices.size();
+    textureCoords = models[index]->getTextureCoords();
+
+    glBindBuffer(GL_ARRAY_BUFFER,VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), vertices.data(), GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,CBO);
+    glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), colors.data(), GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,NBO);
+    glBufferData(GL_ARRAY_BUFFER, vertexNumber * sizeof(QVector3D), normals.data(), GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER,TBO);
+    glBufferData(GL_ARRAY_BUFFER, textureCoords.size() * sizeof(QVector2D), textureCoords.data(), GL_DYNAMIC_DRAW);
+}
+
+void MainView::updateTextures(int index) {
     glBindTexture(GL_TEXTURE_2D, texPtr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texWidths[index], texHeights[index], 0, GL_RGBA, GL_UNSIGNED_BYTE, textures[index].data());
     glGenerateMipmap(GL_TEXTURE_2D);
-}
-
-void MainView::updateBuffers() {
-    // Change the data inside buffers (if you want)
-    // make sure to change GL_STATIC_DRAW to GL_DYNAMIC_DRAW
-    // in the call to glBufferData for better performance
-
 }
 
 
@@ -205,13 +198,15 @@ void MainView::initializeGL() {
 
     eye = QVector3D {2,2,10};
     viewDirection = - eye;
+    loadModel(":/models/sphere.obj", cubeBO);
     loadModel(":/models/cube.obj", cubeBO);
 
     glGenTextures(1,&texPtr);
-    loadTexture(":/textures/rug_logo.png", texPtr);
+    loadTexture(":/textures/rug_logo.png");
+    loadTexture(":/textures/cat_diff.png");
 
     // For animation, you can start your timer here
-
+    time = 0;
 }
 
 /**
@@ -246,7 +241,7 @@ void MainView::paintGL() {
     mainShaderProg->bind();
 
     glBindVertexArray(VAO);
-    renderRaytracerScene();
+    renderScene();
     glBindVertexArray(0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texPtr);

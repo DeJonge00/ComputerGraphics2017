@@ -16,6 +16,7 @@ uniform mat4 projection;
 uniform mat4 normal;
 uniform vec3 position;
 uniform vec3 lightPosition;
+uniform float size;
 
 // Specify the outputs of the vertex shader
 out vec3 vertColor;
@@ -26,8 +27,8 @@ out vec2 vertexTexCoords;
 
 void main()
 {
-    // gl_Position is the output (a vec4) of the vertex shader
-    gl_Position = projection * view * model * (vec4(vertCoordinates_in, 1.0) + vec4(position,1.0));
+    vec3 sizedcoordinates = size * vertCoordinates_in;
+    gl_Position = projection * view * model * (vec4(sizedcoordinates, 1.0) + vec4(position,1.0));
     vec4 p = model * vec4(lightPosition, 1.0);
     lightPos = vec3(p.xyz);
     vertColor = vertColor_in;

@@ -38,7 +38,7 @@ public:
 
     QVector3D convertHSLtoRGB(float H, float S, float L);
 
-    void loadTexture(QString file, GLuint texPtr);
+    void loadTexture(QString file);
     QVector<quint8> imageToBytes(QImage image);
 
 protected:
@@ -62,15 +62,16 @@ private:
 
     void createShaderPrograms();
     void createBuffers();
-    void updateBuffers();
+    void updateBuffers(int index);
+    void updateTextures(int index);
     void updateUniforms();
     void updateMatrices();
     void updateCameraPosition();
 
     // Raytracer scene functions
-    void renderSphere(QVector3D pos, QVector3D color, QVector4D material, QVector3D lightpos);
-    void renderCube(QVector3D pos, QVector3D lightpos);
-    void renderRaytracerScene();
+    void renderTexturedModel(int modelIndex, int texIndex, QVector3D pos, float size, QVector4D phong);
+    void renderColoredModel(int modelIndex, QVector3D matColor, QVector3D pos, float size, QVector4D phong);
+    void renderScene();
 
     /* Add your private members below */
     void loadModel(QString filename, GLuint bufferObject);
@@ -80,7 +81,9 @@ private:
 
     QTimer timer; // timer used for animation
 
-    Model *cubeModel;
+    QVector<Model *> models;
+    QVector<QVector<quint8>> textures;
+    QVector<int> texWidths, texHeights;
     GLuint cubeBO;
 
     unsigned numTris;
@@ -96,7 +99,7 @@ private:
     bool forpressed, backpressed, leftpressed, rightpressed, uppressed, downpressed;
     QVector3D eye;
 
-    GLint shaderModel, shaderView, shaderProjection, shaderNormal, shaderPosition;
+    GLint shaderModel, shaderView, shaderProjection, shaderNormal, shaderPosition, shaderSize;
     GLint shaderMatColor, shaderComponents, shaderLightPos, shaderLightColor, shaderEyePos;
     GLint shaderTexture, shaderSampler;
 
@@ -104,9 +107,12 @@ private:
     QVector<QVector2D> textureCoords;
 
     int viewMode = 0; //0=normal, 1=first person
+    int time = 0;
 
     QVector3D viewDirection;
     int moveSpeed = 8;
+
+    QVector3D lightPos, lightCol;
 
 private slots:
     void onMessageLogged( QOpenGLDebugMessage Message );

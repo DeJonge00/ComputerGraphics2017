@@ -18,7 +18,7 @@ SOURCES += main.cpp\
     model.cpp \
     utility.cpp \
     user_input.cpp \
-    raytracerscene.cpp
+    scene.cpp
 
 HEADERS  += mainwindow.h \
     mainview.h \

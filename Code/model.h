@@ -6,6 +6,7 @@
 #include <QVector>
 #include <QVector2D>
 #include <QVector3D>
+#include <algorithm>
 
 /**
  * @brief The Model class

@@ -60,7 +60,30 @@ Model::Model(QString filename) {
  *
  */
 void Model::unitize() {
-    qDebug() << "TODO: implement this yourself";
+    float minx = INFINITY, miny = INFINITY, minz = INFINITY;
+    float maxx = -INFINITY, maxy = - INFINITY, maxz = -INFINITY;
+    for(int i = 0; i < vertices.size(); i++) {
+        minx = std::min(minx, vertices[i][0]);
+        maxx = std::max(maxx, vertices[i][0]);
+        miny = std::min(miny, vertices[i][1]);
+        maxy = std::max(maxy, vertices[i][1]);
+        minz = std::min(minz, vertices[i][2]);
+        maxz = std::max(maxz, vertices[i][2]);
+    }
+    QVector3D center {
+        minx + (maxx - minx) / 2,
+        miny + (maxy - miny) / 2,
+        minz + (maxz - minz) / 2
+    };
+    float dx = maxx - minx;
+    float dy = maxy - miny;
+    float dz = maxz - minz;
+    for(int i = 0; i < vertices.size(); i++) {
+        vertices[i] -= center;
+        vertices[i][0] /= dx;
+        vertices[i][1] /= dy;
+        vertices[i][2] /= dz;
+    }
 }
 
 QVector<QVector3D> Model::getVertices() {
