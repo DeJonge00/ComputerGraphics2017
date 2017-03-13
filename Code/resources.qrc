@@ -10,5 +10,16 @@
         <file>textures/rug_logo.png</file>
         <file>models/cat.obj</file>
         <file>models/sphere.obj</file>
+        <file>textures/earth.png</file>
+        <file>textures/sun.png</file>
+        <file>textures/moon.png</file>
+        <file>textures/venus.png</file>
+        <file>textures/uranus.png</file>
+        <file>textures/saturn.png</file>
+        <file>textures/neptune.png</file>
+        <file>textures/mercury.png</file>
+        <file>textures/mars.png</file>
+        <file>textures/jupiter.png</file>
+        <file>textures/stars.png</file>
     </qresource>
 </RCC>

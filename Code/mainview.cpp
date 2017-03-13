@@ -1,5 +1,5 @@
 #include "mainview.h"
-#include "math.h"
+#include "cmath"
 
 #include <QDateTime>
 
@@ -74,6 +74,9 @@ void MainView::createShaderPrograms() {
     shaderLightColor = glGetUniformLocation(mainShaderProg->programId(), "lightColor");
     shaderEyePos = glGetUniformLocation(mainShaderProg->programId(), "eyePosition");
     shaderSampler = glGetUniformLocation(mainShaderProg->programId(), "sampler");
+    shaderLightingOn = glGetUniformLocation(mainShaderProg->programId(), "lightingOn");
+    shaderCenterPos = glGetUniformLocation(mainShaderProg->programId(), "centerPos");
+    shaderRotation = glGetUniformLocation(mainShaderProg->programId(), "rotation");
 }
 
 /**
@@ -196,17 +199,28 @@ void MainView::initializeGL() {
 
     createBuffers();
 
-    eye = QVector3D {2,2,10};
+    initializeScene();
+
+    eye = QVector3D {0,0,10};
     viewDirection = - eye;
     loadModel(":/models/sphere.obj", cubeBO);
     loadModel(":/models/cube.obj", cubeBO);
 
     glGenTextures(1,&texPtr);
-    loadTexture(":/textures/rug_logo.png");
-    loadTexture(":/textures/cat_diff.png");
+    loadTexture(":/textures/sun.png");
+    loadTexture(":/textures/mercury.png");
+    loadTexture(":/textures/venus.png");
+    loadTexture(":/textures/earth.png");
+    loadTexture(":/textures/mars.png");
+    loadTexture(":/textures/jupiter.png");
+    loadTexture(":/textures/saturn.png");
+    loadTexture(":/textures/uranus.png");
+    loadTexture(":/textures/neptune.png");
+    loadTexture(":/textures/moon.png");
+    loadTexture(":/textures/stars.png");
 
     // For animation, you can start your timer here
-    time = 0;
+    timer.start(1000/60);
 }
 
 /**
@@ -235,7 +249,7 @@ void MainView::paintGL() {
     updateMatrices();
 
     // Clear the screen before rendering
-    glClearColor(0.5f,0.5f,0.0f, 1.0f);
+    glClearColor(0.0f,0.0f,0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     mainShaderProg->bind();
@@ -254,11 +268,11 @@ void MainView::updateMatrices() {
     projection.setToIdentity();
 
     if (viewMode == 0) {
-        view.lookAt(eye, QVector3D {0, 0, 0}, QVector3D {0, 1, 0});
+        view.lookAt(eye, QVector3D {0,0,0}, QVector3D {0, 1, 0});
     } else {
         view.lookAt(eye, eye + viewDirection, QVector3D {0, 1, 0});
     }
-    projection.perspective(30.0f, (float)width() / (float)height(), 0.1f, 8000.0f);
+    projection.perspective(30.0, (float)width() / (float)height(), 0.01, 11000.0);
     model = rotation * scaling;
     normal = rotation;
 

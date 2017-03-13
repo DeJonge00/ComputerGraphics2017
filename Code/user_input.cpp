@@ -26,23 +26,18 @@ void MainView::updateRotation(int x, int y, int z)
         0, 0, 0, 1
     };
     rotation = rotX * rotY * rotZ;
-    update();
 }
 
 void MainView::updateModel(QString name)
 {
     qDebug() << "updateModel(" << name << ")";
     // TODO: load new model, based on name
-
-    update();
 }
 
 void MainView::updateShader(QString name)
 {
     qDebug() << "updateShader(" << name << ")";
     // TODO: switch shaders/renderingprocesses, based on name
-
-    update();
 }
 
 void MainView::updateScale(float scale)
@@ -53,7 +48,6 @@ void MainView::updateScale(float scale)
         0, 0, scale, 0,
         0, 0, 0, 1
     };
-    update();
 }
 
 
@@ -61,11 +55,19 @@ void MainView::updateScale(float scale)
 void MainView::keyPressEvent(QKeyEvent *ev)
 {
     if (ev->key() == 32) {
-        viewMode = 1 - viewMode; //spacebar switches between viewmodes
+        //viewMode = 1 - viewMode;
     }
 
     if (viewMode != 1) {
-        update();
+        switch(ev->key()) {
+            case 'W': centerIndex++; break;
+            case 'S': centerIndex--; break;
+        }
+        if (centerIndex < 0) {
+            centerIndex = sceneobjects.size() - 1;
+        } else if (centerIndex >= sceneobjects.size()) {
+            centerIndex = 0;
+        }
         return;
     }
     switch(ev->key()) {
@@ -76,7 +78,6 @@ void MainView::keyPressEvent(QKeyEvent *ev)
         case 'E': uppressed = true; break;
         case 'Q': downpressed = true; break;
     }
-    update();
 }
 
 // Triggered by releasing a key
@@ -93,7 +94,6 @@ void MainView::keyReleaseEvent(QKeyEvent *ev)
         case 'E': uppressed = false; break;
         case 'Q': downpressed = false; break;
     }
-    update();
 }
 
 void MainView::updateCameraPosition() {
@@ -140,7 +140,6 @@ void MainView::mouseMoveEvent(QMouseEvent *ev)
     }
     prevMouseX = ev->x();
     prevMouseY = ev->y();
-    update();
 }
 
 // Triggered when pressing any mouse button
@@ -160,12 +159,15 @@ void MainView::mouseReleaseEvent(QMouseEvent *ev)
 // Triggered when clicking scrolling with the scroll wheel on the mouse
 void MainView::wheelEvent(QWheelEvent *ev)
 {
-    if (ev->angleDelta().y() >= 0) {
+    if (ev->angleDelta().y() > 0) {
         currentScale *= ev->angleDelta().y();
         currentScale /= 100;
-    } else {
+    } else if (currentScale > 0.007) {
         currentScale /= -ev->angleDelta().y();
         currentScale *= 100;
+    }
+    if (currentScale < 0.007) {
+        currentScale = 0.007;
     }
     updateScale(currentScale);
 }

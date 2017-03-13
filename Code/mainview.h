@@ -10,11 +10,14 @@
 #include <QOpenGLDebugLogger>
 #include <QOpenGLShaderProgram>
 #include <QTimer>
+#include <QVector2D>
 #include <QVector3D>
+#include <QVector4D>
 #include <ctime>
 #include <cstdlib>
 #include <QImage>
 #include <QImageReader>
+#include "sceneobject.h"
 
 #define pi 3.141592653589793238
 
@@ -68,10 +71,11 @@ private:
     void updateMatrices();
     void updateCameraPosition();
 
-    // Raytracer scene functions
-    void renderTexturedModel(int modelIndex, int texIndex, QVector3D pos, float size, QVector4D phong);
+    // Scene functions
+    void renderModel(SceneObject a);
     void renderColoredModel(int modelIndex, QVector3D matColor, QVector3D pos, float size, QVector4D phong);
     void renderScene();
+    void initializeScene();
 
     /* Add your private members below */
     void loadModel(QString filename, GLuint bufferObject);
@@ -79,7 +83,8 @@ private:
     // Shader programs, GLint for uniforms/buffer objects, other variables
     QOpenGLShaderProgram *mainShaderProg;
 
-    QTimer timer; // timer used for animation
+    QTimer timer; // timer used for Animations
+    long time = 0;
 
     QVector<Model *> models;
     QVector<QVector<quint8>> textures;
@@ -101,18 +106,21 @@ private:
 
     GLint shaderModel, shaderView, shaderProjection, shaderNormal, shaderPosition, shaderSize;
     GLint shaderMatColor, shaderComponents, shaderLightPos, shaderLightColor, shaderEyePos;
-    GLint shaderTexture, shaderSampler;
+    GLint shaderTexture, shaderSampler, shaderLightingOn, shaderCenterPos, shaderRotation;
 
     GLuint texPtr;
     QVector<QVector2D> textureCoords;
 
     int viewMode = 0; //0=normal, 1=first person
-    int time = 0;
 
     QVector3D viewDirection;
     int moveSpeed = 8;
 
     QVector3D lightPos, lightCol;
+
+    QVector<SceneObject*> sceneobjects;
+    int centerIndex;
+
 
 private slots:
     void onMessageLogged( QOpenGLDebugMessage Message );
