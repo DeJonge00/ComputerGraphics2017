@@ -36,6 +36,7 @@ void MainView::renderScene()
 }
 
 void MainView::initializeScene() {
+    mainShaderProg->bind();
     lightCol = QVector3D(1,1,1);
     lightPos = QVector3D(0,0,0);
     glUniform3f(shaderLightPos, lightPos[0], lightPos[1], lightPos[2]);
@@ -126,4 +127,5 @@ void MainView::initializeScene() {
     obj->setSize(10000);
     obj->lightingOn = false;
     sceneobjects.append(obj);
+    mainShaderProg->release();
 }

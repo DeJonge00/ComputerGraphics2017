@@ -17,12 +17,15 @@ uniform float lightingOn;
 
 // Specify the output of the fragment shader
 // Usually a vec4 describing a color (Red, Green, Blue, Alpha/Transparency)
-out vec4 fColor;
+layout (location = 0) out vec4 fColor;
+layout (location = 1) out vec4 fNormal;
 
 void main()
 {
-    vec3 texColor = texture2D(sampler, vertexTexCoords).xyz;
-    if (lightingOn == 1.0) {
+    fColor = texture2D(sampler, vertexTexCoords);
+    fNormal = (vertNormal + 1) / 2;
+    /*vec3 texColor = texture2D(sampler, vertexTexCoords).xyz;
+      if (lightingOn == 1.0) {
         vec3 N = normalize(vec3(vertNormal.xyz));
         vec3 L = normalize(lightPos - vertCoordinates); //direction of the ray
         vec3 V = normalize(vertCoordinates - eyepos); //direction to the eye
@@ -33,5 +36,5 @@ void main()
         fColor = vec4(ambient + diffuse + specular, 1.0);
     } else {
         fColor = vec4(texColor, 1.0);
-    }
+    }*/
 }

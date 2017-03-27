@@ -42,6 +42,7 @@ MainView::~MainView() {
 
     // Free the main shader
     delete mainShaderProg;
+    delete shaderprog2;
 
     debugLogger->stopLogging();
 
@@ -57,7 +58,6 @@ void MainView::createShaderPrograms() {
     // Qt wrapper (way cleaner than using pure OpenGL)
     mainShaderProg = new QOpenGLShaderProgram();
     mainShaderProg->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/vertshader.glsl");
-    mainShaderProg->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fragshader.glsl");
     mainShaderProg->link();
 
     // Store the locations (pointers in gpu memory) of uniforms in Glint's
@@ -77,6 +77,17 @@ void MainView::createShaderPrograms() {
     shaderLightingOn = glGetUniformLocation(mainShaderProg->programId(), "lightingOn");
     shaderCenterPos = glGetUniformLocation(mainShaderProg->programId(), "centerPos");
     shaderRotation = glGetUniformLocation(mainShaderProg->programId(), "rotation");
+    mainShaderProg->release();
+
+    shaderprog2 = new QOpenGLShaderProgram();
+    shaderprog2->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fragshader2.glsl");
+    shaderprog2->link();
+
+    shaderprog2->bind();
+    shader2Diffuse = glGetUniformLocation(shaderprog2->programId(), "diffuse");
+    shader2Normal = glGetUniformLocation(shaderprog2->programId(), "normal");
+    shader2Depth = glGetUniformLocation(shaderprog2->programId(), "depth");
+    shaderprog2->release();
 }
 
 /**
@@ -109,6 +120,38 @@ void MainView::createBuffers() {
     glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,0,0);
 
     glBindVertexArray(0);
+
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gBuffer1, 0);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gBuffer2, 0);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gBuffer3, 0);
+    GLenum drawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, drawBuffers);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+void MainView::createTextures() {
+    glGenTextures(1, &gBuffer1);
+    glBindTexture(GL_TEXTURE_2D, gBuffer1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+    glGenTextures(1, &gBuffer2);
+    glBindTexture(GL_TEXTURE_2D, gBuffer2);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+    glGenTextures(1, &gBuffer3);
+    glBindTexture(GL_TEXTURE_2D, gBuffer3);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width(), height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+    //TODO: update screen size
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void MainView::loadModel(QString filename, GLuint bufferObject) {
@@ -195,8 +238,10 @@ void MainView::initializeGL() {
     // Set the color of the screen to be black on clear (new frame)
     glClearColor(0.0, 0.0, 0.0, 1.0);
 
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING,&defaultFramebuffer);
     createShaderPrograms();
 
+    createTextures();
     createBuffers();
 
     initializeScene();
@@ -253,14 +298,27 @@ void MainView::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     mainShaderProg->bind();
-
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
     glBindVertexArray(VAO);
-    renderScene();
-    glBindVertexArray(0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texPtr);
 
+    renderScene();
+    QVector<QVector3D> trio {
+        QVector3D (-100,-100,0),
+        QVector3D (-100,100,0),
+        QVector3D (100,100,0)
+    };
+    glBindBuffer(GL_ARRAY_BUFFER,VBO);
+    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(QVector3D), trio.data(), GL_DYNAMIC_DRAW);
+    glDrawArrays(GL_TRIANGLES, 0, 1);
+
+    glBindVertexArray(0);
     mainShaderProg->release();
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFramebuffer);
+
+    shaderprog2->bind();
+
+    shaderprog2->release();
 }
 
 void MainView::updateMatrices() {

@@ -65,6 +65,7 @@ private:
 
     void createShaderPrograms();
     void createBuffers();
+    void createTextures();
     void updateBuffers(int index);
     void updateTextures(int index);
     void updateUniforms();
@@ -81,7 +82,7 @@ private:
     void loadModel(QString filename, GLuint bufferObject);
 
     // Shader programs, GLint for uniforms/buffer objects, other variables
-    QOpenGLShaderProgram *mainShaderProg;
+    QOpenGLShaderProgram *mainShaderProg, *shaderprog2;
 
     QTimer timer; // timer used for Animations
     long time = 0;
@@ -94,6 +95,8 @@ private:
     unsigned numTris;
 
     GLuint VAO, VBO, CBO, NBO, TBO;
+    GLuint gBuffer1, gBuffer2, gBuffer3, FBO;
+    GLint defaultFramebuffer;
     QMatrix4x4 model, view, projection, normal;
     QMatrix4x4 rotation, scaling;
     QVector3D currentRotation;
@@ -107,6 +110,7 @@ private:
     GLint shaderModel, shaderView, shaderProjection, shaderNormal, shaderPosition, shaderSize;
     GLint shaderMatColor, shaderComponents, shaderLightPos, shaderLightColor, shaderEyePos;
     GLint shaderTexture, shaderSampler, shaderLightingOn, shaderCenterPos, shaderRotation;
+    GLint shader2Diffuse, shader2Normal, shader2Depth;
 
     GLuint texPtr;
     QVector<QVector2D> textureCoords;
