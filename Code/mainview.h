@@ -103,7 +103,7 @@ private:
     QVector3D currentRotation;
 
     int prevMouseX, prevMouseY;
-    float currentScale = 1;
+    float currentScale = 0.1;
 
     bool forpressed, backpressed, leftpressed, rightpressed, uppressed, downpressed;
     QVector3D eye;

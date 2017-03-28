@@ -156,19 +156,19 @@ void MainView::createTextures() {
     glBindTexture(GL_TEXTURE_2D, gBuffer1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidths[0], texHeights[0], 0, GL_RGB, GL_UNSIGNED_BYTE, textures[0].data());
 
     glGenTextures(1, &gBuffer2);
     glBindTexture(GL_TEXTURE_2D, gBuffer2);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidths[1], texHeights[1], 0, GL_RGB, GL_UNSIGNED_BYTE, textures[1].data());
 
     glGenTextures(1, &gBuffer3);
     glBindTexture(GL_TEXTURE_2D, gBuffer3);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width(), height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, texWidths[2], texHeights[2], 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, textures[2].data());
     //TODO: update screen size
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -258,31 +258,21 @@ void MainView::initializeGL() {
     // Set the color of the screen to be black on clear (new frame)
     glClearColor(0.0, 0.0, 0.0, 1.0);
 
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING,&defaultFramebuffer);
+    glGenTextures(1,&texPtr);
+    loadTexture(":/textures/cat_diff.png");
+    loadTexture(":/textures/cat_norm.png");
+    loadTexture(":/textures/cat_spec.png");
+    loadModel(":/models/cat.obj", cubeBO);
+
     createShaderPrograms();
 
     createTextures();
     createBuffers();
 
-    initializeScene();
-
     eye = QVector3D {0,0,10};
     viewDirection = - eye;
-    loadModel(":/models/sphere.obj", cubeBO);
-    loadModel(":/models/cube.obj", cubeBO);
 
-    glGenTextures(1,&texPtr);
-    loadTexture(":/textures/sun.png");
-    loadTexture(":/textures/mercury.png");
-    loadTexture(":/textures/venus.png");
-    loadTexture(":/textures/earth.png");
-    loadTexture(":/textures/mars.png");
-    loadTexture(":/textures/jupiter.png");
-    loadTexture(":/textures/saturn.png");
-    loadTexture(":/textures/uranus.png");
-    loadTexture(":/textures/neptune.png");
-    loadTexture(":/textures/moon.png");
-    loadTexture(":/textures/stars.png");
+    initializeScene();
 
     // For animation, you can start your timer here
     timer.start(1000/60);
@@ -310,11 +300,13 @@ void MainView::resizeGL(int newWidth, int newHeight) {
  *
  */
 void MainView::paintGL() {
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING,&defaultFramebuffer);
+
     // Clear the screen before rendering
     glClearColor(0.0f,0.0f,0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    /*mainShaderProg->bind();
+    mainShaderProg->bind();
     updateCameraPosition();
     updateMatrices();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
@@ -323,29 +315,35 @@ void MainView::paintGL() {
     renderScene();
 
     glBindVertexArray(0);
-    mainShaderProg->release();*/
+    mainShaderProg->release();
 
-    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFramebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFramebuffer);
 
-
+    updateTextures(0);
     QVector<QVector2D> trios {
         QVector2D (-1,-1),
         QVector2D (-1,1),
+        QVector2D (1,1),
+        QVector2D (-1,-1),
+        QVector2D (1,-1),
         QVector2D (1,1)
     };
     QVector<QVector2D> uvs {
         QVector2D (0,0),
         QVector2D (0,1),
+        QVector2D (1,1),
+        QVector2D (0,0),
+        QVector2D (1,0),
         QVector2D (1,1)
     };
 
     glBindBuffer(GL_ARRAY_BUFFER,VBO2);
-    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(QVector2D), trios.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(QVector2D), trios.data(), GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER,UVBO);
-    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(QVector2D), uvs.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(QVector2D), uvs.data(), GL_DYNAMIC_DRAW);
     shaderprog2->bind();
     glBindVertexArray(VAO2);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 
     shaderprog2->release();
