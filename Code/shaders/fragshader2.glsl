@@ -4,7 +4,7 @@ uniform sampler2D diffuse;
 uniform sampler2D normals;
 uniform sampler2D depth;
 
-in vec2 uv;
+//in vec2 uv;
 
 layout (location = 0) out vec4 fColor;
 

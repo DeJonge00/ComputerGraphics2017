@@ -22,5 +22,6 @@
         <file>textures/jupiter.png</file>
         <file>textures/stars.png</file>
         <file>shaders/fragshader2.glsl</file>
+        <file>shaders/vertshader2.glsl</file>
     </qresource>
 </RCC>

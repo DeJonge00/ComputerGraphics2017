@@ -95,6 +95,7 @@ private:
     unsigned numTris;
 
     GLuint VAO, VBO, CBO, NBO, TBO;
+    GLuint VAO2, VBO2, UVBO;
     GLuint gBuffer1, gBuffer2, gBuffer3, FBO;
     GLint defaultFramebuffer;
     QMatrix4x4 model, view, projection, normal;
