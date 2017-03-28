@@ -56,9 +56,9 @@ MainView::~MainView() {
  */
 void MainView::createShaderPrograms() {
     // Qt wrapper (way cleaner than using pure OpenGL)
-    /*mainShaderProg = new QOpenGLShaderProgram();
+    mainShaderProg = new QOpenGLShaderProgram();
     mainShaderProg->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/vertshader.glsl");
-    mainShaderProg->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/fragshader.glsl");
+    mainShaderProg->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fragshader.glsl");
     mainShaderProg->link();
 
     // Store the locations (pointers in gpu memory) of uniforms in Glint's
@@ -78,10 +78,10 @@ void MainView::createShaderPrograms() {
     shaderLightingOn = glGetUniformLocation(mainShaderProg->programId(), "lightingOn");
     shaderCenterPos = glGetUniformLocation(mainShaderProg->programId(), "centerPos");
     shaderRotation = glGetUniformLocation(mainShaderProg->programId(), "rotation");
-    mainShaderProg->release();*/
+    mainShaderProg->release();
 
     shaderprog2 = new QOpenGLShaderProgram();
-    shaderprog2->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/vertshader2.glsl");
+    shaderprog2->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/vertshader2.glsl");
     shaderprog2->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fragshader2.glsl");
     shaderprog2->link();
 
@@ -310,14 +310,13 @@ void MainView::resizeGL(int newWidth, int newHeight) {
  *
  */
 void MainView::paintGL() {
-    updateCameraPosition();
-    updateMatrices();
-
     // Clear the screen before rendering
     glClearColor(0.0f,0.0f,0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /*mainShaderProg->bind();
+    updateCameraPosition();
+    updateMatrices();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
     glBindVertexArray(VAO);
 
@@ -326,31 +325,27 @@ void MainView::paintGL() {
     glBindVertexArray(0);
     mainShaderProg->release();*/
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFramebuffer);
+    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFramebuffer);
 
-    shaderprog2->bind();
+
     QVector<QVector2D> trios {
         QVector2D (-1,-1),
         QVector2D (-1,1),
-        QVector2D (1,1),
-        QVector2D (-1,-1),
-        QVector2D (1,-1),
         QVector2D (1,1)
     };
     QVector<QVector2D> uvs {
         QVector2D (0,0),
         QVector2D (0,1),
-        QVector2D (1,1),
-        QVector2D (0,0),
-        QVector2D (1,0),
         QVector2D (1,1)
     };
-    glBindVertexArray(VAO2);
+
     glBindBuffer(GL_ARRAY_BUFFER,VBO2);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(QVector2D), trios.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(QVector2D), trios.data(), GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER,UVBO);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(QVector2D), uvs.data(), GL_DYNAMIC_DRAW);
-    glDrawArrays(GL_TRIANGLES, 0, 2);
+    glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(QVector2D), uvs.data(), GL_DYNAMIC_DRAW);
+    shaderprog2->bind();
+    glBindVertexArray(VAO2);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
 
     shaderprog2->release();
