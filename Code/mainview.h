@@ -103,15 +103,15 @@ private:
     QVector3D currentRotation;
 
     int prevMouseX, prevMouseY;
-    float currentScale = 0.1;
+    float currentScale = 0.03;
 
     bool forpressed, backpressed, leftpressed, rightpressed, uppressed, downpressed;
     QVector3D eye;
 
     GLint shaderModel, shaderView, shaderProjection, shaderNormal, shaderPosition, shaderSize;
-    GLint shaderMatColor, shaderComponents, shaderLightPos, shaderLightColor, shaderEyePos;
-    GLint shaderTexture, shaderSampler, shaderLightingOn, shaderCenterPos, shaderRotation;
-    GLint shader2Diffuse, shader2Normal, shader2Depth;
+    GLint shaderSampler, shaderRotation;
+    GLint shader2Components, shader2LightPos, shader2LightColor, shader2EyePos;
+    GLint shader2Diffuse, shader2Normal, shader2Depth, shader2Inverse;
 
     GLuint texPtr;
     QVector<QVector2D> textureCoords;
@@ -120,8 +120,6 @@ private:
 
     QVector3D viewDirection;
     int moveSpeed = 8;
-
-    QVector3D lightPos, lightCol;
 
     QVector<SceneObject*> sceneobjects;
     int centerIndex;

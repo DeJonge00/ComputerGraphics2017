@@ -67,16 +67,8 @@ void MainView::createShaderPrograms() {
     shaderView = glGetUniformLocation(mainShaderProg->programId(), "view");
     shaderProjection = glGetUniformLocation(mainShaderProg->programId(), "projection");
     shaderNormal = glGetUniformLocation(mainShaderProg->programId(), "normal");
-    shaderMatColor = glGetUniformLocation(mainShaderProg->programId(), "materialColor");
-    shaderComponents = glGetUniformLocation(mainShaderProg->programId(), "phongComponents");
-    shaderPosition = glGetUniformLocation(mainShaderProg->programId(), "position");
     shaderSize = glGetUniformLocation(mainShaderProg->programId(), "size");
-    shaderLightPos = glGetUniformLocation(mainShaderProg->programId(), "lightPosition");
-    shaderLightColor = glGetUniformLocation(mainShaderProg->programId(), "lightColor");
-    shaderEyePos = glGetUniformLocation(mainShaderProg->programId(), "eyePosition");
     shaderSampler = glGetUniformLocation(mainShaderProg->programId(), "sampler");
-    shaderLightingOn = glGetUniformLocation(mainShaderProg->programId(), "lightingOn");
-    shaderCenterPos = glGetUniformLocation(mainShaderProg->programId(), "centerPos");
     shaderRotation = glGetUniformLocation(mainShaderProg->programId(), "rotation");
     mainShaderProg->release();
 
@@ -87,8 +79,13 @@ void MainView::createShaderPrograms() {
 
     shaderprog2->bind();
     shader2Diffuse = glGetUniformLocation(shaderprog2->programId(), "diffuse");
-    shader2Normal = glGetUniformLocation(shaderprog2->programId(), "normal");
+    shader2Normal = glGetUniformLocation(shaderprog2->programId(), "normals");
     shader2Depth = glGetUniformLocation(shaderprog2->programId(), "depth");
+    shader2Inverse = glGetUniformLocation(shaderprog2->programId(), "inverse");
+    shader2LightPos = glGetUniformLocation(shaderprog2->programId(), "lightPosition");
+    shader2LightColor = glGetUniformLocation(shaderprog2->programId(), "lightColor");
+    shader2EyePos = glGetUniformLocation(shaderprog2->programId(), "eyePosition");
+    shader2Components = glGetUniformLocation(shaderprog2->programId(), "phongComponents");
     shaderprog2->release();
 }
 
@@ -156,20 +153,19 @@ void MainView::createTextures() {
     glBindTexture(GL_TEXTURE_2D, gBuffer1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidths[0], texHeights[0], 0, GL_RGB, GL_UNSIGNED_BYTE, textures[0].data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, textures[0].data());
 
     glGenTextures(1, &gBuffer2);
     glBindTexture(GL_TEXTURE_2D, gBuffer2);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidths[1], texHeights[1], 0, GL_RGB, GL_UNSIGNED_BYTE, textures[1].data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, textures[1].data());
 
     glGenTextures(1, &gBuffer3);
     glBindTexture(GL_TEXTURE_2D, gBuffer3);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, texWidths[2], texHeights[2], 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, textures[2].data());
-    //TODO: update screen size
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width(), height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, textures[2].data());
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -269,8 +265,15 @@ void MainView::initializeGL() {
     createTextures();
     createBuffers();
 
+    shaderprog2->bind();
+    glUniform1i(shader2Diffuse, 0);
+    glUniform1i(shader2Normal, 1);
+    glUniform1i(shader2Depth, 2);
+    shaderprog2->release();
+
     eye = QVector3D {0,0,10};
     viewDirection = - eye;
+    updateScale(currentScale);
 
     initializeScene();
 
@@ -302,15 +305,18 @@ void MainView::resizeGL(int newWidth, int newHeight) {
 void MainView::paintGL() {
     glGetIntegerv(GL_FRAMEBUFFER_BINDING,&defaultFramebuffer);
 
+    updateCameraPosition();
+    updateMatrices();
+
+    mainShaderProg->bind();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texPtr);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
+    glBindVertexArray(VAO);
+
     // Clear the screen before rendering
     glClearColor(0.0f,0.0f,0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    mainShaderProg->bind();
-    updateCameraPosition();
-    updateMatrices();
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
-    glBindVertexArray(VAO);
 
     renderScene();
 
@@ -319,7 +325,6 @@ void MainView::paintGL() {
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFramebuffer);
 
-    updateTextures(0);
     QVector<QVector2D> trios {
         QVector2D (-1,-1),
         QVector2D (-1,1),
@@ -337,12 +342,22 @@ void MainView::paintGL() {
         QVector2D (1,1)
     };
 
+    shaderprog2->bind();
     glBindBuffer(GL_ARRAY_BUFFER,VBO2);
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(QVector2D), trios.data(), GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER,UVBO);
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(QVector2D), uvs.data(), GL_DYNAMIC_DRAW);
-    shaderprog2->bind();
+
     glBindVertexArray(VAO2);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gBuffer1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, gBuffer2);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, gBuffer3);
+    glActiveTexture(GL_TEXTURE0);
+
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 
@@ -367,5 +382,13 @@ void MainView::updateMatrices() {
     glUniformMatrix4fv(shaderView, 1, GL_FALSE, view.data());
     glUniformMatrix4fv(shaderProjection, 1, GL_FALSE, projection.data());
     glUniformMatrix4fv(shaderNormal, 1, GL_FALSE, normal.data());
-    glUniform3f(shaderEyePos, eye[0], eye[1], eye[2]);
+    mainShaderProg->release();
+
+    shaderprog2->bind();
+    glUniform4f(shader2Components, 0.2, 0.6, 0.2, 3);
+    glUniform3f(shader2EyePos, eye[0], eye[1], eye[2]);
+    QMatrix4x4 inv = projection * view * model;
+    inv = inv.inverted();
+    glUniformMatrix4fv(shader2Inverse, 1, GL_FALSE, inv.data());
+    shaderprog2->release();
 }

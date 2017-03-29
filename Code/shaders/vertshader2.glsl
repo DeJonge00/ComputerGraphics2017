@@ -6,9 +6,11 @@ layout (location = 1) in vec2 uv_coord_in;
 
 // Specify the outputs of the vertex shader
 out vec2 uv;
+out vec2 frag_coords;
 
 void main()
 {
-    gl_Position = vec4(vert_coord_in,0,1);
+    frag_coords = vert_coord_in;
+    gl_Position = vec4(vert_coord_in,1,1);
     uv = uv_coord_in;
 }
