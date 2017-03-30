@@ -153,19 +153,19 @@ void MainView::createTextures() {
     glBindTexture(GL_TEXTURE_2D, gBuffer1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, textures[0].data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
     glGenTextures(1, &gBuffer2);
     glBindTexture(GL_TEXTURE_2D, gBuffer2);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, textures[1].data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
     glGenTextures(1, &gBuffer3);
     glBindTexture(GL_TEXTURE_2D, gBuffer3);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width(), height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, textures[2].data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width(), height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -303,6 +303,15 @@ void MainView::resizeGL(int newWidth, int newHeight) {
  *
  */
 void MainView::paintGL() {
+    glBindTexture(GL_TEXTURE_2D, gBuffer1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glBindTexture(GL_TEXTURE_2D, gBuffer2);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width(), height(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glBindTexture(GL_TEXTURE_2D, gBuffer3);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width(), height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     glGetIntegerv(GL_FRAMEBUFFER_BINDING,&defaultFramebuffer);
 
     updateCameraPosition();
